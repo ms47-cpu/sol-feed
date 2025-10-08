@@ -1,0 +1,24 @@
+name: Build & Publish Feed
+on:
+  schedule:
+    - cron: "*/15 * * * *"    # alle 15 Minuten
+  workflow_dispatch: {}
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write       # zum Committen
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci || true
+      - run: npm run build
+      - name: Commit feed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add feed/sol-feed.json
+          git commit -m "auto: update feed" || echo "No changes"
+          git push
